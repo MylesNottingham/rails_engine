@@ -270,4 +270,107 @@ describe "Items API" do
       end
     end
   end
+
+  describe "GET /api/v1/items/find" do
+    context "happy path" do
+      it "can find an item by name fragment" do
+        item = create(:item, name: "Fancy Item", merchant: merchant)
+
+        get "/api/v1/items/find?name=ancy"
+
+        expect(response).to have_http_status(:success)
+
+        found_item = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(found_item).to have_key(:id)
+        expect(found_item[:id].to_i).to eq(item.id)
+
+        expect(found_item).to have_key(:attributes)
+        expect(found_item[:attributes]).to be_a(Hash)
+
+        expect(found_item[:attributes]).to have_key(:name)
+        expect(found_item[:attributes][:name]).to be_a(String)
+      end
+
+      it "can find an item by min price" do
+        item_1 = create(:item, unit_price: 1.5, merchant: merchant)
+        item_2 = create(:item, unit_price: 2.5, merchant: merchant)
+        item_3 = create(:item, unit_price: 3.5, merchant: merchant)
+
+        get "/api/v1/items/find?min_price=2"
+
+        expect(response).to have_http_status(:success)
+
+        found_item = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(found_item).to have_key(:id)
+        expect(found_item[:id].to_i).to eq(item_2.id)
+
+        expect(found_item).to have_key(:attributes)
+        expect(found_item[:attributes]).to be_a(Hash)
+
+        expect(found_item[:attributes]).to have_key(:name)
+        expect(found_item[:attributes][:name]).to be_a(String)
+      end
+
+      it "can find an item by max price" do
+        item_1 = create(:item, unit_price: 1.5, merchant: merchant)
+        item_2 = create(:item, unit_price: 2.5, merchant: merchant)
+        item_3 = create(:item, unit_price: 3.5, merchant: merchant)
+
+        get "/api/v1/items/find?max_price=2"
+
+        expect(response).to have_http_status(:success)
+
+        found_item = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(found_item).to have_key(:id)
+        expect(found_item[:id].to_i).to eq(item_1.id)
+
+        expect(found_item).to have_key(:attributes)
+        expect(found_item[:attributes]).to be_a(Hash)
+
+        expect(found_item[:attributes]).to have_key(:name)
+        expect(found_item[:attributes][:name]).to be_a(String)
+      end
+    end
+
+    context "sad path" do
+      it "returns error if min price is below zero" do
+        item = create(:item, unit_price: 1.5, merchant: merchant)
+
+        get "/api/v1/items/find?min_price=-1"
+
+        expect(response).to have_http_status(:bad_request)
+
+        error = JSON.parse(response.body, symbolize_names: true)[:errors]
+
+        expect(error).to eq("Invalid search parameters")
+      end
+
+      it "returns error if max price is below zero" do
+        item = create(:item, unit_price: 1.5, merchant: merchant)
+
+        get "/api/v1/items/find?max_price=-1"
+
+        expect(response).to have_http_status(:bad_request)
+
+        error = JSON.parse(response.body, symbolize_names: true)[:errors]
+
+        expect(error).to eq("Invalid search parameters")
+      end
+
+      it "returns error if item does not exist" do
+        expect(Item.exists?(1)).to eq(false)
+
+        get "/api/v1/items/find?name=ancy"
+
+        expect(response).to have_http_status(:not_found)
+
+        error = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(error).to eq({})
+      end
+    end
+  end
 end
