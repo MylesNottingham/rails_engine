@@ -50,7 +50,7 @@ describe "Merchants API" do
     context "sad path" do
       it "returns status: :not_found if merchant does not exist" do
         expect(Merchant.exists?(1)).to eq(false)
-        
+
         get "/api/v1/merchants/1"
 
         expect(response).to have_http_status(:not_found)
@@ -101,6 +101,51 @@ describe "Merchants API" do
         get "/api/v1/merchants/1/items"
 
         expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  describe "GET /api/v1/merchants/find_all" do
+    context "happy path" do
+      it "can find all merchants matching name fragment" do
+        create(:merchant, name: "Turing")
+        create(:merchant, name: "Ring World")
+        create(:merchant, name: "Earring World")
+
+        get "/api/v1/merchants/find_all?name=ring"
+
+        expect(response).to have_http_status(:success)
+
+        merchants = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(merchants.count).to eq(3)
+
+        merchants.each do |merchant|
+          expect(merchant).to have_key(:id)
+          expect(merchant[:id].to_i).to be_an(Integer)
+
+          expect(merchant).to have_key(:attributes)
+          expect(merchant[:attributes]).to be_a(Hash)
+
+          expect(merchant[:attributes]).to have_key(:name)
+          expect(merchant[:attributes][:name]).to be_a(String)
+        end
+      end
+    end
+
+    context "sad path" do
+      it "returns an empty array if no merchants match" do
+        create(:merchant, name: "Turing")
+        create(:merchant, name: "Ring World")
+        create(:merchant, name: "Earring World")
+
+        get "/api/v1/merchants/find_all?name=zzz"
+
+        expect(response).to have_http_status(:success)
+
+        merchants = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(merchants).to eq([])
       end
     end
   end
