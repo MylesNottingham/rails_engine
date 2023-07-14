@@ -8,19 +8,19 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def create
-    render json: ItemSerializer.new(Item.create(item_params)), status: :created
+    render json: ItemSerializer.new(Item.create!(item_params)), status: :created
   end
 
   def update
     if params[:merchant_id] == nil || Merchant.exists?(params[:merchant_id])
       render json: ItemSerializer.new(Item.update(params[:id], item_params))
     else
-      render json: { errors: "Merchant not found" }, status: :not_found
+      render json: { errors: "Merchant does not exist" }, status: :not_found
     end
   end
 
   def destroy
-    render json: ItemSerializer.new(Item.delete(params[:id])), status: :no_content
+    Item.destroy(params[:id])
   end
 
   private
