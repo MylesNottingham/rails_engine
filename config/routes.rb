@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+get "/api/v1/merchants/find_all", to: "api/v1/merchants/search#index"
+get "/api/v1/items/find", to: "api/v1/item/search#show"
 
   namespace :api do
     namespace :v1 do
