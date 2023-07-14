@@ -292,10 +292,10 @@ describe "Items API" do
         expect(found_item[:attributes][:name]).to be_a(String)
       end
 
-      it "can find an item by min price" do
-        item_1 = create(:item, unit_price: 1.5, merchant: merchant)
-        item_2 = create(:item, unit_price: 2.5, merchant: merchant)
-        item_3 = create(:item, unit_price: 3.5, merchant: merchant)
+      it "can find and select the first item alphabetically by min price" do
+        item_a = create(:item, name: "A", merchant: merchant, unit_price: 1.5)
+        item_b = create(:item, name: "B", merchant: merchant, unit_price: 2.5)
+        item_c = create(:item, name: "C", merchant: merchant, unit_price: 3.5)
 
         get "/api/v1/items/find?min_price=2"
 
@@ -304,7 +304,7 @@ describe "Items API" do
         found_item = JSON.parse(response.body, symbolize_names: true)[:data]
 
         expect(found_item).to have_key(:id)
-        expect(found_item[:id].to_i).to eq(item_2.id)
+        expect(found_item[:id].to_i).to eq(item_b.id)
 
         expect(found_item).to have_key(:attributes)
         expect(found_item[:attributes]).to be_a(Hash)
@@ -314,9 +314,9 @@ describe "Items API" do
       end
 
       it "can find an item by max price" do
-        item_1 = create(:item, unit_price: 1.5, merchant: merchant)
-        item_2 = create(:item, unit_price: 2.5, merchant: merchant)
-        item_3 = create(:item, unit_price: 3.5, merchant: merchant)
+        item_a = create(:item, name: "A", merchant: merchant, unit_price: 1.5)
+        item_b = create(:item, name: "B", merchant: merchant, unit_price: 2.5)
+        item_c = create(:item, name: "C", merchant: merchant, unit_price: 3.5)
 
         get "/api/v1/items/find?max_price=2"
 
@@ -325,7 +325,7 @@ describe "Items API" do
         found_item = JSON.parse(response.body, symbolize_names: true)[:data]
 
         expect(found_item).to have_key(:id)
-        expect(found_item[:id].to_i).to eq(item_1.id)
+        expect(found_item[:id].to_i).to eq(item_a.id)
 
         expect(found_item).to have_key(:attributes)
         expect(found_item[:attributes]).to be_a(Hash)
